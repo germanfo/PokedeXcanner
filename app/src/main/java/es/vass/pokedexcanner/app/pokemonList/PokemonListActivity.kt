@@ -1,17 +1,24 @@
 package es.vass.pokedexcanner.pokemonList.list
 
+import android.Manifest
+import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
-import android.support.design.widget.Snackbar
 import es.vass.pokedexcanner.Injector
-import es.vass.pokedexcanner.pokemonList.pokemonDetail.PokemonDetailActivity
 import es.vass.pokedexcanner.R
+import es.vass.pokedexcanner.app.barcodeScanner.PokemonQRScanner
 import es.vass.pokedexcanner.app.pokemonList.PokemonListAdapter
 import es.vass.pokedexcanner.app.pokemonList.PokemonListViewModel
-
+import es.vass.pokedexcanner.pokemonList.pokemonDetail.PokemonDetailActivity
 import kotlinx.android.synthetic.main.activity_pokemon_list.*
 import kotlinx.android.synthetic.main.pokemon_list.*
 
@@ -24,6 +31,13 @@ import kotlinx.android.synthetic.main.pokemon_list.*
  * item details side-by-side using two vertical panes.
  */
 class PokemonListActivity : AppCompatActivity() {
+
+    companion object {
+
+        const val POKEMON_ID = "pokemon_id"
+        const val SCANNER_REQUEST_CODE = 99
+        const val PERMISSION_REQUEST_CODE = 22
+    }
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -43,8 +57,16 @@ class PokemonListActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         toolbar.title = title
 
-        fab.setOnClickListener { view ->
-            pokemonListViewModel.viewPokemon(pokeid++)
+        fab.setOnClickListener {
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA),PERMISSION_REQUEST_CODE)
+            }
+            else
+                launchQRPokemonScanner()
+
+            //pokemonListViewModel.viewPokemon(pokeid++)
         }
 
         if (pokemon_detail_container != null) {
@@ -58,6 +80,17 @@ class PokemonListActivity : AppCompatActivity() {
         setupViewModel()
         setupRecyclerView(pokemon_list)
         observeViewModel()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode){
+            PERMISSION_REQUEST_CODE -> if (grantResults[0] == PackageManager.PERMISSION_GRANTED) launchQRPokemonScanner()
+        }
+    }
+    fun launchQRPokemonScanner(){
+        var scannerIntent = Intent(this, PokemonQRScanner::class.java)
+        startActivityForResult(scannerIntent, SCANNER_REQUEST_CODE)
     }
 
     fun setupViewModel() {
@@ -79,6 +112,26 @@ class PokemonListActivity : AppCompatActivity() {
             }
         })
     }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SCANNER_REQUEST_CODE && resultCode == Activity.RESULT_OK){
+            var scannedText: String? = data?.getStringExtra(POKEMON_ID)
+
+            var pokemonId : Long? = scannedText?.toLong()
+
+            pokemonId?.let {
+                pokemonListViewModel.viewPokemon(pokemonId)
+            }?:alert("Eso no es un pokemon, ponte gafas")
+        }
+    }
+
+    fun Context.alert (text: String){
+        AlertDialog.Builder(this).setMessage(text).create().show()
+    }
+
+
 
     /*class SimpleItemRecyclerViewAdapter(
         private val parentActivity: PokemonListActivity,

@@ -30,6 +30,8 @@ class DataProvider private constructor(remoteDataSource: IRemoteDataSource, loca
     }
 
     fun viewPokemon(id: Long){
+        //Añadimos el id del pokemon, y vamos a recoger sus datos
+        AppExecutors.diskIO.execute{ localDataSource.insertPokemon(Pokemon(id,"?","",null,null))}
 
         val remotePokemonFormData : LiveData<PokemonFormResponse> = remoteDataSource.downloadPokemonViewedData(id)
 

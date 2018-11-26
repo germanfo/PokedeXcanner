@@ -3,9 +3,10 @@
           package="es.vass.pokedexcanner">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
-            android:allowBackup="true"
+            android:allowBackup="false"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
@@ -30,6 +31,9 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="es.vass.pokedexcanner.pokemonList.list.PokemonListActivity"/>
         </activity>
+
+        <activity android:name=".app.barcodeScanner.PokemonQRScanner"/>
+
     </application>
 
 </manifest>
