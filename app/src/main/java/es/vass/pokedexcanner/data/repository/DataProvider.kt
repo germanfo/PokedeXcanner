@@ -59,5 +59,9 @@ class DataProvider private constructor(remoteDataSource: IRemoteDataSource, loca
         }
     }
 
+    fun getPokedexEntry(pokemonId: Long): LiveData<Pokemon> {
+        return localDataSource.getPokemonById(pokemonId)
+    }
+
 
 }

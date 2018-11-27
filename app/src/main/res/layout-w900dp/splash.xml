@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:theme="@style/AppTheme.NoActionBar">
+
+    <View
+            android:id="@+id/background_view"
+            android:layout_centerInParent="true"
+            android:layout_alignRight="@id/iv_pokedex_top"
+            android:layout_width="match_parent"
+            android:layout_alignLeft="@id/iv_pokedex_top"
+            android:layout_height="700dp"
+            android:layout_marginRight="92dp"
+            android:layout_marginLeft="90dp"
+            android:background="#c886d7dd"/>
+
+    <ImageView
+            android:layout_centerInParent="true"
+            android:id="@+id/iv_pokedex_ball"
+            android:layout_alignLeft="@id/iv_pokedex_top"
+
+            android:layout_alignRight="@id/iv_pokedex_top"
+            android:layout_width="wrap_content"
+            android:layout_height="230dp"
+            android:scaleType="fitCenter"
+            android:tint="#60c2f8"
+            android:src="@drawable/pokedex_ball"/>
+
+    <ImageView
+            android:id="@+id/iv_pokedex_top"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="350dp"
+            android:src="@drawable/pokedex_top"
+            android:layout_alignParentTop="true"
+            android:scaleType="fitCenter"
+            />
+
+
+    <ImageView
+            android:layout_centerHorizontal="true"
+            android:scaleType="fitCenter"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/iv_pokedex_bottom"
+            android:layout_width="wrap_content"
+            android:layout_height="350dp"
+            android:src="@drawable/pokedex_bottom"
+
+            />
+
+</RelativeLayout>
