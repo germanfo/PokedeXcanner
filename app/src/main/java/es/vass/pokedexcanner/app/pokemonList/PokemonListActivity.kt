@@ -21,6 +21,7 @@ import es.vass.pokedexcanner.app.pokemonList.PokemonListViewModel
 import es.vass.pokedexcanner.pokemonList.pokemonDetail.PokemonDetailActivity
 import kotlinx.android.synthetic.main.activity_pokemon_list.*
 import kotlinx.android.synthetic.main.pokemon_list.*
+import java.lang.NumberFormatException
 
 /**
  * An activity representing a list of Pings. This activity
@@ -119,7 +120,13 @@ class PokemonListActivity : AppCompatActivity() {
         if (requestCode == SCANNER_REQUEST_CODE && resultCode == Activity.RESULT_OK){
             var scannedText: String? = data?.getStringExtra(POKEMON_ID)
 
-            var pokemonId : Long? = scannedText?.toLong()
+            var pokemonId : Long? = try {
+
+                scannedText?.toLong()
+            }catch (ex: NumberFormatException){
+                null
+            }
+
 
             pokemonId?.let {
                 pokemonListViewModel.viewPokemon(pokemonId)
@@ -128,7 +135,7 @@ class PokemonListActivity : AppCompatActivity() {
     }
 
     fun Context.alert (text: String){
-        AlertDialog.Builder(this).setMessage(text).create().show()
+        AlertDialog.Builder(this).setMessage(text).setPositiveButton(R.string.ok, null).create().show()
     }
 
 

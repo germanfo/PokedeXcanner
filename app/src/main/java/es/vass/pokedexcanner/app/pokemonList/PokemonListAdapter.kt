@@ -3,9 +3,11 @@ package es.vass.pokedexcanner.app.pokemonList
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.RecyclerView
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.squareup.picasso.Picasso
 import es.vass.pokedexcanner.R
 import es.vass.pokedexcanner.data.model.Pokemon
 import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity
@@ -52,18 +54,27 @@ class PokemonListAdapter (private val parentActivity: PokemonListActivity, priva
     }
 
     override fun onBindViewHolder(pokemonViewHolder: PokemonViewHolder, position: Int) {
-        pokemonViewHolder.tvIdText.text = pokemonList?.get(position)?.id.toString()
-        pokemonViewHolder.tvTextContent.text = pokemonList?.get(position)?.nombre
-
-        with(pokemonViewHolder.itemView) {
+        with(pokemonViewHolder.view){
             tag = pokemonList?.get(position)
             setOnClickListener(onClickListener)
+
+            pokemonList?.get(position)?.let {
+                tv_pokemon_item_number.text = it.id.toString()
+                tv_pokemon_item_name.text = it.nombre
+                tv_pokemon_item_height.text = it.altura?.toString() ?: "?"
+                tv_pokemon_item_weight.text = it.peso?.toString() ?: "?"
+
+                if (!TextUtils.isEmpty(it.imagen))
+                    Picasso.get().load(it.imagen).into(iv_item_pokemon)
+                else
+                    iv_item_pokemon.setImageResource(R.drawable.ic_help_outline_black_24dp)
+            }
         }
+
     }
 
 
     class PokemonViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tvIdText = itemView.id_text
-        val tvTextContent = itemView.content
+        val view = itemView
     }
 }
