@@ -7,12 +7,17 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
+import android.view.View
+import android.view.ViewAnimationUtils
+import android.view.ViewTreeObserver
+import android.view.animation.AccelerateInterpolator
 import es.vass.pokedexcanner.Injector
 import es.vass.pokedexcanner.R
 import es.vass.pokedexcanner.app.barcodeScanner.PokemonQRScanner
@@ -38,6 +43,8 @@ class PokemonListActivity : AppCompatActivity() {
         const val POKEMON_ID = "pokemon_id"
         const val SCANNER_REQUEST_CODE = 99
         const val PERMISSION_REQUEST_CODE = 22
+        const val EXTRA_CIRCULAR_REVEAL_X = "reveal_x"
+        const val EXTRA_CIRCULAR_REVEAL_Y = "reveal_y"
     }
 
     /**
@@ -49,11 +56,31 @@ class PokemonListActivity : AppCompatActivity() {
     private lateinit var pokemonListViewModel: PokemonListViewModel
     private lateinit var rvAdapter: PokemonListAdapter
 
-    var pokeid: Long = 1
+    //var pokeid: Long = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pokemon_list)
+
+        if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && intent.hasExtra(
+                EXTRA_CIRCULAR_REVEAL_X) && intent.hasExtra(EXTRA_CIRCULAR_REVEAL_Y)){
+            root_list_layout.visibility = View.INVISIBLE
+
+            val revealX = intent.getIntExtra(EXTRA_CIRCULAR_REVEAL_X,0)
+            val revealY = intent.getIntExtra(EXTRA_CIRCULAR_REVEAL_Y, 0)
+
+            root_list_layout.viewTreeObserver.apply {
+                if (isAlive)
+                    addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            revealActivity(revealX, revealY)
+                            root_list_layout.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                        }
+                    })
+            }
+        }
+        else
+            root_list_layout.visibility = View.VISIBLE
 
         setSupportActionBar(toolbar)
         toolbar.title = title
@@ -131,6 +158,19 @@ class PokemonListActivity : AppCompatActivity() {
             pokemonId?.let {
                 pokemonListViewModel.viewPokemon(pokemonId)
             }?:alert("Eso no es un pokemon, ponte gafas")
+        }
+    }
+
+    fun revealActivity(revealX: Int, revealY: Int){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            val finalRadius : Float = (Math.max(root_list_layout.width, root_list_layout.height)*1.1).toFloat()
+
+            with(ViewAnimationUtils.createCircularReveal(root_list_layout, revealX, revealY, 0f, finalRadius)){
+                duration = 400
+                interpolator = AccelerateInterpolator()
+                root_list_layout.visibility = View.VISIBLE
+                start()
+            }
         }
     }
 

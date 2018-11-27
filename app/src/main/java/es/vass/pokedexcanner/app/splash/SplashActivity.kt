@@ -7,10 +7,15 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
+import android.support.v4.app.ActivityCompat
+import android.support.v4.app.ActivityOptionsCompat
 import android.support.v7.app.AppCompatActivity
+import android.view.View
 import es.vass.pokedexcanner.R
 import es.vass.pokedexcanner.domain.AppExecutors
 import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity
+import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity.Companion.EXTRA_CIRCULAR_REVEAL_X
+import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity.Companion.EXTRA_CIRCULAR_REVEAL_Y
 import kotlinx.android.synthetic.main.splash.*
 
 class SplashActivity: AppCompatActivity() {
@@ -68,7 +73,17 @@ class SplashActivity: AppCompatActivity() {
 
             override fun onAnimationEnd(animation: Animator){
 
-                startActivity(Intent(this@SplashActivity, PokemonListActivity::class.java))
+                val option: ActivityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(this@SplashActivity, center, "transition")
+                val revealX : Int = (center.x + center.width/2).toInt()
+                val revealY : Int = (center.y + center.height/2).toInt()
+
+                with(Intent(this@SplashActivity, PokemonListActivity::class.java)){
+                    putExtra(EXTRA_CIRCULAR_REVEAL_X, revealX)
+                    putExtra(EXTRA_CIRCULAR_REVEAL_Y, revealY)
+
+                    ActivityCompat.startActivity(this@SplashActivity, this, option.toBundle())
+                }
+
                 finish()
             }
         })
