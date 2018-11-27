@@ -6,8 +6,6 @@
                                         android:name="es.vass.pokedexcanner.PokemonListFragment"
                                         android:layout_width="match_parent"
                                         android:layout_height="match_parent"
-                                        android:layout_marginLeft="16dp"
-                                        android:layout_marginRight="16dp"
                                         app:layoutManager="LinearLayoutManager"
                                         tools:context=".pokemonList.list.PokemonListActivity"
                                         tools:listitem="@layout/pokemon_list_content"/>
