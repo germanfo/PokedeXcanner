@@ -9,11 +9,13 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.app.NavUtils
+import android.support.v4.view.ViewCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.OvershootInterpolator
 import com.squareup.picasso.Picasso
 import es.vass.pokedexcanner.Injector
 import es.vass.pokedexcanner.R
@@ -39,6 +41,8 @@ class PokemonDetailFragment : Fragment() {
     private var pokemonId : Long? = null
 
     private var pokemonDetailViewModel : PokemonDetailFragmentViewModel? = null
+
+    private var stopBouncePokeballAnimation : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,9 +96,33 @@ class PokemonDetailFragment : Fragment() {
             var mediaPlayer = MediaPlayer.create(context,R.raw.pokeball_throw)
             mediaPlayer.start()
 
+           animateBouncingPokeball()
+
+
             pokemonDetailViewModel?.apply {
                 pokemonId?.let { getPokemonInfo(it)?.value?.nombre }?.let { catchPokemon(it) } }
         }
+    }
+
+    fun animateBouncingPokeball(){
+        ViewCompat.animate(fab).rotation(60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).withEndAction {
+            ViewCompat.animate(fab).rotation(-60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
+                ViewCompat.animate(fab).rotation(60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
+                        ViewCompat.animate(fab).rotation(0f).withLayer().setDuration(200)
+                            .setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
+                                if (stopBouncePokeballAnimation) {
+                                    ViewCompat.animate(fab).scaleXBy(2f).scaleYBy(2f).withLayer().setDuration(200)
+                                        .setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
+                                        ViewCompat.animate(fab).scaleXBy(-2f).scaleYBy(-2f).withLayer().setDuration(200)
+                                            .setInterpolator(OvershootInterpolator()).setStartDelay(100).start()
+                                      }.start()
+                                } else{
+                                    animateBouncingPokeball()
+                                }
+                        }.start()
+                }.start()
+            }.start()
+        }.start()
     }
 
     fun setupViewModel(){
@@ -116,7 +144,13 @@ class PokemonDetailFragment : Fragment() {
                         presentPokemonData(pokemon)
                 })
             }
+
+            viewModel.isPokemonCatched.observe(this, Observer {
+                if (it != null)
+                    stopBouncePokeballAnimation = it
+            })
         }
+
     }
 
     fun presentPokemonData(pokemon: Pokemon){

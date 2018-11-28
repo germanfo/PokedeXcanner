@@ -69,6 +69,7 @@ class SplashActivity: AppCompatActivity() {
             override fun onAnimationEnd(animation: Animator){
 
                 startActivity(Intent(this@SplashActivity, PokemonListActivity::class.java))
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
                 finish()
             }
         })
