@@ -4,13 +4,11 @@ import android.Manifest
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import es.vass.pokedexcanner.Injector
@@ -22,7 +20,6 @@ import es.vass.pokedexcanner.app.pokemonList.PokemonListViewModel
 import es.vass.pokedexcanner.pokemonList.pokemonDetail.PokemonDetailActivity
 import kotlinx.android.synthetic.main.activity_pokemon_list.*
 import kotlinx.android.synthetic.main.pokemon_list.*
-import java.lang.NumberFormatException
 
 /**
  * An activity representing a list of Pings. This activity
@@ -69,6 +66,12 @@ class PokemonListActivity : AppCompatActivity() {
                 launchQRPokemonScanner()
 
             //pokemonListViewModel.viewPokemon(pokeid++)
+        }
+
+        fab.setOnLongClickListener {
+            for (i in 1..151)
+                pokemonListViewModel.viewPokemon(i.toLong())
+            true
         }
 
         if (pokemon_detail_container != null) {
