@@ -51,8 +51,8 @@ class PokemonListAdapter (private val parentActivity: PokemonListActivity, priva
             pokemonList?.get(position)?.let {
                 tv_pokemon_item_number.text = it.id.toString()
                 tv_pokemon_item_name.text = it.nombre
-                tv_pokemon_item_height.text = it.altura?.toString() ?: "?"
-                tv_pokemon_item_weight.text = it.peso?.toString() ?: "?"
+                tv_pokemon_item_height.text = "${it.altura?.toString() ?: "?"} m"
+                tv_pokemon_item_weight.text = "${it.peso?.toString() ?: "?"} Kg"
 
                 if (!TextUtils.isEmpty(it.imagen))
                     Picasso.get().load(it.imagen).into(iv_item_pokemon)

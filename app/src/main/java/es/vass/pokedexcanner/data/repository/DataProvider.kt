@@ -51,7 +51,7 @@ class DataProvider private constructor(remoteDataSource: IRemoteDataSource, loca
 
         remotePokemonExtendedData.observeForever { data ->
             data?.let {
-                val pokemonCatched = Pokemon(it.id.toLong(), it.name, it.sprites.frontDefault, it.height, it.weight)
+                val pokemonCatched = Pokemon(it.id.toLong(), it.name, it.sprites.frontDefault, it.height/10, it.weight/10)
 
                 AppExecutors.diskIO.execute { localDataSource.insertPokemon(pokemonCatched) }
 

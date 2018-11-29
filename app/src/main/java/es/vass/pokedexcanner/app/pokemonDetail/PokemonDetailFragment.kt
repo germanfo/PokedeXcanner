@@ -4,12 +4,16 @@ import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.NavUtils
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewCompat
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.graphics.Palette
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -17,6 +21,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 import es.vass.pokedexcanner.Injector
 import es.vass.pokedexcanner.R
 import es.vass.pokedexcanner.app.alert
@@ -26,6 +31,7 @@ import es.vass.pokedexcanner.data.model.Pokemon
 import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity
 import kotlinx.android.synthetic.main.pokemon_detail.*
 import kotlinx.android.synthetic.main.pokemon_detail_data.*
+import java.lang.Exception
 
 /**
  * A fragment representing a single Pokemon detail screen.
@@ -37,7 +43,7 @@ class PokemonDetailFragment : Fragment() {
 
     private var twoPane: Boolean = false
 
-    private var pokemonId : Long? = null
+    private var pokemonIdFromBundle : Long? = null
 
     private var pokemonDetailViewModel : PokemonDetailFragmentViewModel? = null
 
@@ -50,7 +56,7 @@ class PokemonDetailFragment : Fragment() {
 
         arguments?.let {
             if (it.containsKey(ARG_ITEM_ID)) {
-               pokemonId = it.getLong(ARG_ITEM_ID)
+               pokemonIdFromBundle = it.getLong(ARG_ITEM_ID)
             }
         }
     }
@@ -145,39 +151,65 @@ class PokemonDetailFragment : Fragment() {
     }
 
     fun observeViewModel(){
-        pokemonDetailViewModel?.let {viewModel ->
+        pokemonDetailViewModel?.let {detailViewModel ->
 
-            viewModel.pokemon.observe(this, Observer { pokemon ->
+            detailViewModel.pokemon.observe(this, Observer { pokemon ->
                 if (pokemon != null)
                     presentPokemonData(pokemon)
             })
 
 
-            viewModel.isPokemonCatched.observe(this, Observer {
-                if (it != null)
-                    stopBouncePokeballAnimation = it
+            detailViewModel.isPokemonCatched.observe(this, Observer { isCatched ->
+                if (isCatched != null)
+                    stopBouncePokeballAnimation = isCatched
             })
         }
 
-        pokemonListViewModel?.selectedPokemonId?.observe(this, Observer {
-            it?.let { pokemonId ->
-                pokemonDetailViewModel?.loadPokemonInfo(pokemonId)
+        pokemonListViewModel?.selectedPokemonIdFromVM?.observe(this, Observer { selectedId ->
+            selectedId?.let { pokemonSelectedId ->
+                pokemonDetailViewModel?.loadPokemonInfo(pokemonSelectedId)
             }
-        }) ?: pokemonId?.let { pokemonDetailViewModel?.loadPokemonInfo(it) }
+        })
+            ?:
+        pokemonIdFromBundle?.let { pokemonDetailViewModel?.loadPokemonInfo(it) }
     }
 
     fun presentPokemonData(pokemon: Pokemon){
         if (!TextUtils.isEmpty(pokemon.imagen)) {
-            Picasso.get().load(pokemon.imagen).into(iv_pokemon_sprite_detail)
-            Picasso.get().load(pokemon.imagen).into(iv_detalle_pokemon_grande)
+
+
+            var goodImage = "https://assets.pokemon.com/assets/cms2/img/pokedex/full/${pokemon.idFilledWithZero()}.png"
+
+            if (pokemon.altura != null)
+                Picasso.get().load(goodImage).into(iv_detalle_pokemon_grande)
+
+            Picasso.get().load(pokemon.imagen).into(object: Target{
+                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                }
+
+                override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                }
+
+                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                    iv_pokemon_sprite_detail.setImageBitmap(bitmap)
+
+                    bitmap?.let{
+                        toolbar_layout.setBackgroundColor(Palette.from(bitmap).generate().vibrantSwatch?.rgb ?: context?.let { context ->
+                            ContextCompat.getColor(
+                                context, R.color.colorPrimary)
+                        }!!)
+                    }
+                }
+
+            })
         }
 
         toolbar_layout.title = pokemon.nombre
 
-        tv_pokemon_item_height_detail.text = pokemon.altura?.toString() ?: "?"
+        tv_pokemon_item_height_detail.text = "${pokemon.altura?.toString() ?: "?"} m"
         tv_pokemon_item_name_detail.text = pokemon.nombre
         tv_pokemon_item_number_detail.text = pokemon.id.toString()
-        tv_pokemon_item_weight_detail.text = pokemon.peso?.toString() ?: "?"
+        tv_pokemon_item_weight_detail.text = "${pokemon.peso?.toString() ?: "?"} Kg"
 
         fab_catch.show()
 

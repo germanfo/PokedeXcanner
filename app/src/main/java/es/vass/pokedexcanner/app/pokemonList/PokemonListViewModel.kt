@@ -11,7 +11,7 @@ class PokemonListViewModel(val dataProvider: DataProvider):ViewModel() {
     val pokemonList: LiveData<List<Pokemon>>
         get() = dataProvider.getPokedexList()
 
-    val selectedPokemonId: MutableLiveData<Long> = MutableLiveData()
+    val selectedPokemonIdFromVM: MutableLiveData<Long> = MutableLiveData()
 
 
     fun viewPokemon(id: Long){
@@ -19,7 +19,7 @@ class PokemonListViewModel(val dataProvider: DataProvider):ViewModel() {
     }
 
     fun setSelectedPokemonId(id: Long?) {
-        selectedPokemonId.postValue(id)
+        selectedPokemonIdFromVM.postValue(id)
     }
 
 

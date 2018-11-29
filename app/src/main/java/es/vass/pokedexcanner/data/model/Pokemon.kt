@@ -11,5 +11,9 @@ data class Pokemon (@PrimaryKey var id: Long?,
                     @ColumnInfo(name = "height") var altura: Float?,
                     @ColumnInfo(name = "weight") var peso: Float?
 ){
+    fun idFilledWithZero(): String {
+       return String.format("%03d", id)
+    }
+
     constructor():this(null,"?",null,null,null)
 }
