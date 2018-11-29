@@ -8,18 +8,22 @@ import es.vass.pokedexcanner.data.repository.DataProvider
 
 class PokemonDetailFragmentViewModel(val dataProvider: DataProvider):ViewModel() {
 
-    private var pokemon: LiveData<Pokemon>? = null
+    val pokemon: MutableLiveData<Pokemon> = MutableLiveData()
+    private var pokemonEntryInfo: LiveData<Pokemon>? = null
     var isPokemonCatched: MutableLiveData<Boolean> = MutableLiveData()
 
 
-    fun getPokemonInfo(pokemonId: Long) : LiveData<Pokemon>?{
-        if (pokemon == null)
-            pokemon = dataProvider.getPokedexEntry(pokemonId)
-        return pokemon
+    fun loadPokemonInfo(pokemonId: Long){
+
+        pokemonEntryInfo = dataProvider.getPokedexEntry(pokemonId)
+
+        pokemonEntryInfo?.observeForever {
+            pokemon.postValue(it)
+        }
     }
 
     fun catchPokemon(name: String){
-        pokemon?.apply{
+        pokemon.apply{
             observeForever {
                 if (it?.altura != null)
                     isPokemonCatched.postValue(true)

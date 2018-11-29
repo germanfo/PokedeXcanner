@@ -25,17 +25,7 @@ class PokemonListAdapter (private val parentActivity: PokemonListActivity, priva
         onClickListener = View.OnClickListener { view ->
             val item = view.tag as Pokemon
             if (twoPane) {
-                val fragment = PokemonDetailFragment().apply {
-                    arguments = Bundle().apply {
-                        item.id?.let {
-                            putLong(PokemonDetailFragment.ARG_ITEM_ID, it)
-                        }
-                    }
-                }
-                parentActivity.supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.pokemon_detail_container, fragment)
-                    .commit()
+                parentActivity.setSelectedPokemonId(item.id)
             } else {
                 val intent = Intent(view.context, PokemonDetailActivity::class.java).apply {
                     putExtra(PokemonDetailFragment.ARG_ITEM_ID, item.id)

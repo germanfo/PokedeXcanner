@@ -1,15 +1,9 @@
 package es.vass.pokedexcanner.pokemonList.pokemonDetail
 
-import android.content.Intent
-import android.media.MediaPlayer
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
-import android.support.v4.app.NavUtils
-import android.view.MenuItem
 import es.vass.pokedexcanner.R
 import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity
-import kotlinx.android.synthetic.main.activity_pokemon_detail.*
 
 /**
  * An activity representing a single Pokemon detail screen. This

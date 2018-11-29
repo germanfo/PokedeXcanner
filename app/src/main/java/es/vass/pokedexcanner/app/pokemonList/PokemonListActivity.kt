@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import es.vass.pokedexcanner.Injector
 import es.vass.pokedexcanner.R
+import es.vass.pokedexcanner.app.alert
 import es.vass.pokedexcanner.app.barcodeScanner.PokemonQRScanner
 import es.vass.pokedexcanner.app.pokemonList.PokemonListAdapter
 import es.vass.pokedexcanner.app.pokemonList.PokemonListViewModel
@@ -114,6 +115,10 @@ class PokemonListActivity : AppCompatActivity() {
         })
     }
 
+    fun setSelectedPokemonId(id: Long?) {
+        pokemonListViewModel.setSelectedPokemonId(id)
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -134,9 +139,8 @@ class PokemonListActivity : AppCompatActivity() {
         }
     }
 
-    fun Context.alert (text: String){
-        AlertDialog.Builder(this).setMessage(text).setPositiveButton(R.string.ok, null).create().show()
-    }
+
+
 
 
 

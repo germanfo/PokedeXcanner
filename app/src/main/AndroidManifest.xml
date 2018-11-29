@@ -31,7 +31,6 @@
         </activity>
         <activity
                 android:name="es.vass.pokedexcanner.pokemonList.pokemonDetail.PokemonDetailActivity"
-                android:label="@string/title_pokemon_detail"
                 android:parentActivityName="es.vass.pokedexcanner.pokemonList.list.PokemonListActivity"
                 android:theme="@style/AppTheme.NoActionBar">
             <meta-data

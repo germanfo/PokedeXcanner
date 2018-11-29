@@ -6,11 +6,11 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.app.NavUtils
 import android.support.v4.view.ViewCompat
 import android.support.v7.app.AppCompatActivity
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -19,14 +19,13 @@ import android.view.animation.OvershootInterpolator
 import com.squareup.picasso.Picasso
 import es.vass.pokedexcanner.Injector
 import es.vass.pokedexcanner.R
+import es.vass.pokedexcanner.app.alert
 import es.vass.pokedexcanner.app.pokemonDetail.PokemonDetailFragmentViewModel
-import es.vass.pokedexcanner.app.pokemonDetail.PokemonDetailFragmentViewModelFactory
+import es.vass.pokedexcanner.app.pokemonList.PokemonListViewModel
 import es.vass.pokedexcanner.data.model.Pokemon
-import es.vass.pokedexcanner.dummy.DummyContent
 import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity
 import kotlinx.android.synthetic.main.pokemon_detail.*
 import kotlinx.android.synthetic.main.pokemon_detail_data.*
-import kotlinx.android.synthetic.main.pokemon_list.*
 
 /**
  * A fragment representing a single Pokemon detail screen.
@@ -41,6 +40,8 @@ class PokemonDetailFragment : Fragment() {
     private var pokemonId : Long? = null
 
     private var pokemonDetailViewModel : PokemonDetailFragmentViewModel? = null
+
+    private var pokemonListViewModel : PokemonListViewModel? = null
 
     private var stopBouncePokeballAnimation : Boolean = false
 
@@ -61,11 +62,6 @@ class PokemonDetailFragment : Fragment() {
         val rootView = inflater.inflate(R.layout.pokemon_detail, container, false)
 
 
-        // Show the dummy content as text in a TextView.
-       /* item?.let {
-            rootView.pokemon_detail.text = it.details
-        }*/
-
         return rootView
     }
 
@@ -84,7 +80,6 @@ class PokemonDetailFragment : Fragment() {
                 it.supportActionBar?.setDisplayHomeAsUpEnabled(true)
             }
 
-            setHasOptionsMenu(true)
         }
 
 
@@ -92,28 +87,38 @@ class PokemonDetailFragment : Fragment() {
 
         observeViewModel()
 
-        fab.setOnClickListener { view ->
-            var mediaPlayer = MediaPlayer.create(context,R.raw.pokeball_throw)
-            mediaPlayer.start()
+        fab_catch.setOnClickListener { view ->
 
-           animateBouncingPokeball()
+            if (pokemonDetailViewModel?.pokemon?.value?.altura != null){
+                context?.alert("Ya tienes este pokemon")
+            }
+            else {
+                var mediaPlayer = MediaPlayer.create(context, R.raw.pokeball_throw)
+                mediaPlayer.start()
+
+                animateBouncingPokeball()
 
 
-            pokemonDetailViewModel?.apply {
-                pokemonId?.let { getPokemonInfo(it)?.value?.nombre }?.let { catchPokemon(it) } }
+                pokemonDetailViewModel?.apply {
+                    pokemon.value?.nombre?.let { catchPokemon(it) }
+                }
+            }
         }
+
+        fab_catch.hide()
+
     }
 
     fun animateBouncingPokeball(){
-        ViewCompat.animate(fab).rotation(60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).withEndAction {
-            ViewCompat.animate(fab).rotation(-60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
-                ViewCompat.animate(fab).rotation(60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
-                        ViewCompat.animate(fab).rotation(0f).withLayer().setDuration(200)
+        ViewCompat.animate(fab_catch).rotation(60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).withEndAction {
+            ViewCompat.animate(fab_catch).rotation(-60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
+                ViewCompat.animate(fab_catch).rotation(60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
+                        ViewCompat.animate(fab_catch).rotation(0f).withLayer().setDuration(200)
                             .setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
                                 if (stopBouncePokeballAnimation) {
-                                    ViewCompat.animate(fab).scaleXBy(2f).scaleYBy(2f).withLayer().setDuration(200)
+                                    ViewCompat.animate(fab_catch).scaleXBy(2f).scaleYBy(2f).withLayer().setDuration(200)
                                         .setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
-                                        ViewCompat.animate(fab).scaleXBy(-2f).scaleYBy(-2f).withLayer().setDuration(200)
+                                        ViewCompat.animate(fab_catch).scaleXBy(-2f).scaleYBy(-2f).withLayer().setDuration(200)
                                             .setInterpolator(OvershootInterpolator()).setStartDelay(100).start()
                                       }.start()
                                 } else{
@@ -126,24 +131,27 @@ class PokemonDetailFragment : Fragment() {
     }
 
     fun setupViewModel(){
-        if (!twoPane){
-
-            context?.let {
-            pokemonDetailViewModel = ViewModelProviders.of(this,
-                Injector.providePokemonDetailFragmentViewModelFactory(it)).get(PokemonDetailFragmentViewModel::class.java)
-            }
+        if (twoPane){
+            pokemonListViewModel =
+                    activity?.let { ViewModelProviders.of(it,
+                        context?.let { it1 -> Injector.providePokemonListViewModelFactory(it1) }).get(PokemonListViewModel::class.java) }
         }
+
+        context?.let {
+        pokemonDetailViewModel = ViewModelProviders.of(this,
+            Injector.providePokemonDetailFragmentViewModelFactory(it)).get(PokemonDetailFragmentViewModel::class.java)
+        }
+
     }
 
     fun observeViewModel(){
         pokemonDetailViewModel?.let {viewModel ->
-            pokemonId?.let { pokemonId ->
 
-                viewModel.getPokemonInfo(pokemonId)?.observe(this, Observer { pokemon ->
-                    if (pokemon != null)
-                        presentPokemonData(pokemon)
-                })
-            }
+            viewModel.pokemon.observe(this, Observer { pokemon ->
+                if (pokemon != null)
+                    presentPokemonData(pokemon)
+            })
+
 
             viewModel.isPokemonCatched.observe(this, Observer {
                 if (it != null)
@@ -151,21 +159,28 @@ class PokemonDetailFragment : Fragment() {
             })
         }
 
+        pokemonListViewModel?.selectedPokemonId?.observe(this, Observer {
+            it?.let { pokemonId ->
+                pokemonDetailViewModel?.loadPokemonInfo(pokemonId)
+            }
+        }) ?: pokemonId?.let { pokemonDetailViewModel?.loadPokemonInfo(it) }
     }
 
     fun presentPokemonData(pokemon: Pokemon){
-        Picasso.get().load(pokemon.imagen).into(iv_pokemon_sprite_detail)
-        if (twoPane)
-            detail_toolbar.title = pokemon.nombre
-        else
-            (activity as AppCompatActivity).supportActionBar?.title = pokemon.nombre
+        if (!TextUtils.isEmpty(pokemon.imagen)) {
+            Picasso.get().load(pokemon.imagen).into(iv_pokemon_sprite_detail)
+            Picasso.get().load(pokemon.imagen).into(iv_detalle_pokemon_grande)
+        }
+
+        toolbar_layout.title = pokemon.nombre
 
         tv_pokemon_item_height_detail.text = pokemon.altura?.toString() ?: "?"
         tv_pokemon_item_name_detail.text = pokemon.nombre
         tv_pokemon_item_number_detail.text = pokemon.id.toString()
         tv_pokemon_item_weight_detail.text = pokemon.peso?.toString() ?: "?"
 
-        Picasso.get().load(pokemon.imagen).into(iv_detalle_pokemon_grande)
+        fab_catch.show()
+
     }
 
 
