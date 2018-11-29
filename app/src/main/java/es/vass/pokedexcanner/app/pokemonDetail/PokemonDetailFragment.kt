@@ -182,6 +182,8 @@ class PokemonDetailFragment : Fragment() {
 
             if (pokemon.altura != null)
                 Picasso.get().load(goodImage).into(iv_detalle_pokemon_grande)
+            else
+                iv_detalle_pokemon_grande.setImageBitmap(null)
 
             Picasso.get().load(pokemon.imagen).into(object: Target{
                 override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
