@@ -5,6 +5,9 @@ import android.content.Context
 import es.vass.pokedexcanner.data.model.Pokemon
 import es.vass.pokedexcanner.data.repository.local.daos.PokemonDao
 
+/**
+ * Clase innecesaria, los DAOs individuales sustituirían y dividirían de forma más organizada las acciones sobre DB
+ */
 class LocalDataSource : ILocalDataSource{
 
     lateinit var pokemonDao: PokemonDao

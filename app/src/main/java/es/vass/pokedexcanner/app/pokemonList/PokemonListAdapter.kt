@@ -15,18 +15,24 @@ import es.vass.pokedexcanner.pokemonList.pokemonDetail.PokemonDetailActivity
 import es.vass.pokedexcanner.pokemonList.pokemonDetail.PokemonDetailFragment
 import kotlinx.android.synthetic.main.pokemon_list_content.view.*
 
-
+/**
+ * RV Adapter con constructor parentActivity y twoPane como parámetros
+ */
 class PokemonListAdapter (private val parentActivity: PokemonListActivity, private val twoPane: Boolean) : RecyclerView.Adapter<PokemonListAdapter.PokemonViewHolder>() {
 
+    //Onclick listener
     private val onClickListener : View.OnClickListener
     var pokemonList: List<Pokemon>? = null
 
+    //Inicialización del onclickListener
     init {
         onClickListener = View.OnClickListener { view ->
             val item = view.tag as Pokemon
             if (twoPane) {
+                //En tablet se pide a la activity que almacene el id del pokemon seleccionado
                 parentActivity.setSelectedPokemonId(item.id)
             } else {
+                //En SMP se lanza la Activity de detalle con el id como argumento
                 val intent = Intent(view.context, PokemonDetailActivity::class.java).apply {
                     putExtra(PokemonDetailFragment.ARG_ITEM_ID, item.id)
                 }

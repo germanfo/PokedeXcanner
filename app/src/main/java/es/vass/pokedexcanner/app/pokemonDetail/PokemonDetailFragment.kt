@@ -41,19 +41,34 @@ import java.lang.Exception
  */
 class PokemonDetailFragment : Fragment() {
 
+    companion object {
+        /**
+         * Constante del argumento recibido por BUNDLE que indica el ID del pokemon
+         */
+        const val ARG_ITEM_ID = "item_id"
+    }
+
+    //Indicador de tablet
     private var twoPane: Boolean = false
 
+    //ID del pokemon desde Bundle (modo smartphone)
     private var pokemonIdFromBundle : Long? = null
 
+    //ViewModel del Fragment
     private var pokemonDetailViewModel : PokemonDetailFragmentViewModel? = null
 
+    //ViewModel de la Activity (solo en modo tablet)
     private var pokemonListViewModel : PokemonListViewModel? = null
 
+    //boolean indicador para detener la animación
     private var stopBouncePokeballAnimation : Boolean = false
 
+
+//region LifeCycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //Se recoge el ID del pokemon desde el bundle, si está presente (modo SMP)
         arguments?.let {
             if (it.containsKey(ARG_ITEM_ID)) {
                pokemonIdFromBundle = it.getLong(ARG_ITEM_ID)
@@ -67,7 +82,6 @@ class PokemonDetailFragment : Fragment() {
     ): View? {
         val rootView = inflater.inflate(R.layout.pokemon_detail, container, false)
 
-
         return rootView
     }
 
@@ -76,10 +90,12 @@ class PokemonDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        //Se identifica si es tablet
         if (resources.getBoolean(R.bool.isTablet)){
             twoPane = true
         }
 
+        //Setea la Toolbar si es modo SMP
         if (!twoPane) {
             (activity as AppCompatActivity).let {
                 it.setSupportActionBar(detail_toolbar)
@@ -88,23 +104,45 @@ class PokemonDetailFragment : Fragment() {
 
         }
 
-
+        //Setups y observers
+        setupEvents()
         setupViewModel()
 
         observeViewModel()
 
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem) =
+        when (item.itemId) {
+            android.R.id.home -> {
+
+                NavUtils.navigateUpTo(activity as Activity, Intent(context, PokemonListActivity::class.java))
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+
+//endregion
+
+//region UI Events & Presentations
+    fun setupEvents(){
         fab_catch.setOnClickListener { view ->
 
+            //Si la altura del pokemon no es null, ya ha sido capturado
             if (pokemonDetailViewModel?.pokemon?.value?.altura != null){
                 context?.alert("Ya tienes este pokemon")
             }
             else {
+
+                //Reproducción de sonido de lanzamiento + inico de animación
                 var mediaPlayer = MediaPlayer.create(context, R.raw.pokeball_throw)
                 mediaPlayer.start()
 
                 animateBouncingPokeball()
 
 
+                //Solicitudo al VM de operación de captura
                 pokemonDetailViewModel?.apply {
                     pokemon.value?.nombre?.let { catchPokemon(it) }
                 }
@@ -112,9 +150,11 @@ class PokemonDetailFragment : Fragment() {
         }
 
         fab_catch.hide()
-
     }
 
+    /**
+     * Función de concatenación de animaciones de forma recursiva hasta que se active el flag de parada de animación
+     */
     fun animateBouncingPokeball(){
         ViewCompat.animate(fab_catch).rotation(60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).withEndAction {
             ViewCompat.animate(fab_catch).rotation(-60f).withLayer().setDuration(200).setInterpolator(OvershootInterpolator()).setStartDelay(100).withEndAction {
@@ -136,74 +176,51 @@ class PokemonDetailFragment : Fragment() {
         }.start()
     }
 
-    fun setupViewModel(){
-        if (twoPane){
-            pokemonListViewModel =
-                    activity?.let { ViewModelProviders.of(it,
-                        context?.let { it1 -> Injector.providePokemonListViewModelFactory(it1) }).get(PokemonListViewModel::class.java) }
+    //Val de TargetImage para la carga del sprite del pokemon mediante Picasso y la utilización de su color más vivo
+    //para el fondo de la toolbar
+    val targetImage = object : Target {
+        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
         }
 
-        context?.let {
-        pokemonDetailViewModel = ViewModelProviders.of(this,
-            Injector.providePokemonDetailFragmentViewModelFactory(it)).get(PokemonDetailFragmentViewModel::class.java)
+        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
         }
 
-    }
+        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+            iv_pokemon_sprite_detail.setImageBitmap(bitmap)
 
-    fun observeViewModel(){
-        pokemonDetailViewModel?.let {detailViewModel ->
-
-            detailViewModel.pokemon.observe(this, Observer { pokemon ->
-                if (pokemon != null)
-                    presentPokemonData(pokemon)
-            })
-
-
-            detailViewModel.isPokemonCatched.observe(this, Observer { isCatched ->
-                if (isCatched != null)
-                    stopBouncePokeballAnimation = isCatched
-            })
-        }
-
-        pokemonListViewModel?.selectedPokemonIdFromVM?.observe(this, Observer { selectedId ->
-            selectedId?.let { pokemonSelectedId ->
-                pokemonDetailViewModel?.loadPokemonInfo(pokemonSelectedId)
+            bitmap?.let{
+                toolbar_layout.setBackgroundColor(Palette.from(bitmap).generate().vibrantSwatch?.rgb ?: context?.let { context ->
+                    ContextCompat.getColor(
+                        context, R.color.colorPrimary)
+                }!!)
             }
-        })
-            ?:
-        pokemonIdFromBundle?.let { pokemonDetailViewModel?.loadPokemonInfo(it) }
+        }
+
     }
 
+    /**
+     * Presentación de los datos de un pokemon
+     */
     fun presentPokemonData(pokemon: Pokemon){
-        if (!TextUtils.isEmpty(pokemon.imagen)) {
+        iv_detalle_pokemon_grande.setImageDrawable(null)
+        iv_pokemon_sprite_detail.setImageDrawable(null)
 
+        Picasso.get().cancelRequest(iv_detalle_pokemon_grande)
+        Picasso.get().cancelRequest(targetImage)
+
+        if (!TextUtils.isEmpty(pokemon.imagen)) {
 
             var goodImage = "https://assets.pokemon.com/assets/cms2/img/pokedex/full/${pokemon.idFilledWithZero()}.png"
 
-            if (pokemon.altura != null)
+            if (pokemon.altura != null) {
                 Picasso.get().load(goodImage).into(iv_detalle_pokemon_grande)
-            else
+            }
+            else {
                 iv_detalle_pokemon_grande.setImageBitmap(null)
+            }
 
-            Picasso.get().load(pokemon.imagen).into(object: Target{
-                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                }
 
-                override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-                }
-
-                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                    iv_pokemon_sprite_detail.setImageBitmap(bitmap)
-
-                    bitmap?.let{
-                        toolbar_layout.setBackgroundColor(Palette.from(bitmap).generate().vibrantSwatch?.rgb ?: context?.let { context ->
-                            ContextCompat.getColor(
-                                context, R.color.colorPrimary)
-                        }!!)
-                    }
-                }
-
-            })
+            Picasso.get().load(pokemon.imagen).into(targetImage)
         }
 
         toolbar_layout.title = pokemon.nombre
@@ -218,27 +235,64 @@ class PokemonDetailFragment : Fragment() {
     }
 
 
+//endregion
 
-    override fun onOptionsItemSelected(item: MenuItem) =
-        when (item.itemId) {
-            android.R.id.home -> {
-                // This ID represents the Home or Up button. In the case of this
-                // activity, the Up button is shown. Use NavUtils to allow users
-                // to navigate up one level in the application structure. For
-                // more details, see the Navigation pattern on Android Design:
-                //
-                // http://developer.android.com/design/patterns/navigation.html#up-vs-back
+//region VM
+    /**
+     * Preparación de los ViewModels
+     */
+    fun setupViewModel(){
 
-                NavUtils.navigateUpTo(activity as Activity, Intent(context, PokemonListActivity::class.java))
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+        //Si es TAB se recoge el viewmodel de la activity
+        if (twoPane){
+            pokemonListViewModel =
+                    activity?.let { ViewModelProviders.of(it,
+                        context?.let { it1 -> Injector.providePokemonListViewModelFactory(it1) }).get(PokemonListViewModel::class.java) }
         }
-    companion object {
-        /**
-         * The fragment argument representing the item ID that this fragment
-         * represents.
-         */
-        const val ARG_ITEM_ID = "item_id"
+
+        //Se recoge el viewModel del fragment
+        context?.let {
+        pokemonDetailViewModel = ViewModelProviders.of(this,
+            Injector.providePokemonDetailFragmentViewModelFactory(it)).get(PokemonDetailFragmentViewModel::class.java)
+        }
+
     }
+
+    /**
+     * Se observan los distintos livedata de los VM
+     */
+    fun observeViewModel(){
+
+        // Se observa el LiveData de "Pokemon" para presentar la información del pokemon seleccionado
+        pokemonDetailViewModel?.let {detailViewModel ->
+
+            detailViewModel.pokemon.observe(this, Observer { pokemon ->
+                if (pokemon != null)
+                    presentPokemonData(pokemon)
+            })
+
+            //Se observa el boolean indicador de pokemon capturado para activar el flag de parada de animación
+            detailViewModel.isPokemonCatched.observe(this, Observer { isCatched ->
+                if (isCatched != null)
+                    stopBouncePokeballAnimation = isCatched
+            })
+        }
+
+        //Si el viewmodel de la activity no es null se observa el LiveData del ID Pokmeon para iniciar la carga
+        //de datos del pokemon cuando cambie, en otro caso se inicia directamente la carga de datos del pokemon
+        //basándonos en el ID recibido por bundle
+        pokemonListViewModel?.selectedPokemonIdFromVM?.observe(this, Observer { selectedId ->
+            selectedId?.let { pokemonSelectedId ->
+                pokemonDetailViewModel?.loadPokemonInfo(pokemonSelectedId)
+            }
+        })
+            ?:
+        pokemonIdFromBundle?.let { pokemonDetailViewModel?.loadPokemonInfo(it) }
+    }
+//endregion
+
+
+
+
+
 }

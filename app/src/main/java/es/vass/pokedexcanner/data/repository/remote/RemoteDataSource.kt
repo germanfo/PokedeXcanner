@@ -27,6 +27,7 @@ class RemoteDataSource : IRemoteDataSource{
         httpClient.writeTimeout(TIMEOUT, TimeUnit.SECONDS)
 
         val retrofit: Retrofit = Retrofit.Builder()
+       //Se utiliza el networkIO como ejecutor de Retrofit
             .callbackExecutor(AppExecutors.networkIO)
             .client(httpClient.build())
             .addConverterFactory(GsonConverterFactory.create())
@@ -37,14 +38,22 @@ class RemoteDataSource : IRemoteDataSource{
     }
 
 
+    /**
+     * Función tipo utilizando retrofit para obtener datos desde una api remota
+     */
     override fun downloadPokemonViewedData(id: Long): LiveData<PokemonFormResponse> {
+        //definición de la CALL de retrofit
        var call : Call<PokemonFormResponse> = apiServices.getPokemonInfo(id)
 
+        //MutableLiveData del tipo de respuesta de la API
         var pokemonFormResponseLD: MutableLiveData<PokemonFormResponse> = MutableLiveData()
 
+        //Llamada asíncrona a la API
         call.enqueue(object : Callback<PokemonFormResponse>{
 
             override fun onResponse(call: Call<PokemonFormResponse>, response: Response<PokemonFormResponse>?){
+                //Al obtener la respuesta de forma asíncrona se modifica el valor del mutable livedata anteriormente definido
+                //para que almacene los datos de la respuesta, lo que provocará una acción en los observadores
                 response?.let {
                     pokemonFormResponseLD.postValue(response.body())
 
@@ -56,6 +65,7 @@ class RemoteDataSource : IRemoteDataSource{
             }
         })
 
+        //Devolución del objeto livedata (se realiza inmediatamente dado que la llamda a la api es asíncrona)
        return pokemonFormResponseLD
     }
 

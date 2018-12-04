@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.splash.*
 
 class SplashActivity: AppCompatActivity() {
 
+    //Constantes de Duración y delays
     companion object {
         val DURATION: Long = 3000
         val DELAY: Long = 500
@@ -24,6 +25,7 @@ class SplashActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.splash)
 
+        //Animaciones de la splash activity
         ObjectAnimator.ofFloat(iv_pokedex_top, "translationY", -500f).apply {
             duration = DURATION
             startDelay = DELAY

@@ -7,6 +7,7 @@ import android.arch.persistence.room.OnConflictStrategy.REPLACE
 import android.arch.persistence.room.Query
 import es.vass.pokedexcanner.data.model.Pokemon
 
+//DATA ACCESS OBJECT. Define las acciones y consultas a realizar sobre la Tabla de pokemons de la DB
 @Dao
 interface PokemonDao {
 

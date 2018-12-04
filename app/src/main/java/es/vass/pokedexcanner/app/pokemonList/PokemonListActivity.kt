@@ -31,24 +31,25 @@ import kotlinx.android.synthetic.main.pokemon_list.*
  */
 class PokemonListActivity : AppCompatActivity() {
 
+//region constantes
     companion object {
 
         const val POKEMON_ID = "pokemon_id"
         const val SCANNER_REQUEST_CODE = 99
         const val PERMISSION_REQUEST_CODE = 22
     }
+//endregion
 
-    /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
-     */
+    //Indicador de tablet
     private var twoPane: Boolean = false
 
+    //ViewModel
     private lateinit var pokemonListViewModel: PokemonListViewModel
+
+    //Adapter del RecyclerView
     private lateinit var rvAdapter: PokemonListAdapter
 
-    var pokeid: Long = 1
-
+//region LifeCycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pokemon_list)
@@ -56,8 +57,24 @@ class PokemonListActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         toolbar.title = title
 
+        //Es tablet si se encuentra el detail_container en el layout
+        if (pokemon_detail_container != null) {
+            twoPane = true
+        }
+
+        setupEvents()
+        setupViewModel()
+        setupRecyclerView(pokemon_list)
+        observeViewModel()
+    }
+
+//endregion
+
+//region Setups y observers
+    fun setupEvents(){
         fab.setOnClickListener {
 
+            //Solicitud de permisos para cámara
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED){
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA),PERMISSION_REQUEST_CODE)
@@ -65,7 +82,6 @@ class PokemonListActivity : AppCompatActivity() {
             else
                 launchQRPokemonScanner()
 
-            //pokemonListViewModel.viewPokemon(pokeid++)
         }
 
         fab.setOnLongClickListener {
@@ -73,29 +89,6 @@ class PokemonListActivity : AppCompatActivity() {
                 pokemonListViewModel.viewPokemon(i.toLong())
             true
         }
-
-        if (pokemon_detail_container != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
-            twoPane = true
-        }
-
-        setupViewModel()
-        setupRecyclerView(pokemon_list)
-        observeViewModel()
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode){
-            PERMISSION_REQUEST_CODE -> if (grantResults[0] == PackageManager.PERMISSION_GRANTED) launchQRPokemonScanner()
-        }
-    }
-    fun launchQRPokemonScanner(){
-        var scannerIntent = Intent(this, PokemonQRScanner::class.java)
-        startActivityForResult(scannerIntent, SCANNER_REQUEST_CODE)
     }
 
     fun setupViewModel() {
@@ -110,6 +103,7 @@ class PokemonListActivity : AppCompatActivity() {
     }
 
     fun observeViewModel() {
+        //Se observa la lista de pokemons del VM y se notifica al adapter del recyclerview cuando ésta cambie
         pokemonListViewModel.pokemonList.observe(this, Observer { pokemonList ->
             pokemonList?.let {
                 rvAdapter.pokemonList = pokemonList
@@ -118,8 +112,15 @@ class PokemonListActivity : AppCompatActivity() {
         })
     }
 
-    fun setSelectedPokemonId(id: Long?) {
-        pokemonListViewModel.setSelectedPokemonId(id)
+
+//endregion
+
+//region permisos
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode){
+            PERMISSION_REQUEST_CODE -> if (grantResults[0] == PackageManager.PERMISSION_GRANTED) launchQRPokemonScanner()
+        }
     }
 
 
@@ -135,71 +136,26 @@ class PokemonListActivity : AppCompatActivity() {
                 null
             }
 
-
+            //Solicitud al VM para visualizar los datos de un pokemon
             pokemonId?.let {
                 pokemonListViewModel.viewPokemon(pokemonId)
             }?:alert("Eso no es un pokemon, ponte gafas")
         }
     }
+//endregion
 
 
 
+    fun launchQRPokemonScanner(){
+        var scannerIntent = Intent(this, PokemonQRScanner::class.java)
+        startActivityForResult(scannerIntent, SCANNER_REQUEST_CODE)
+    }
+
+
+    fun setSelectedPokemonId(id: Long?) {
+        pokemonListViewModel.setSelectedPokemonId(id)
+    }
 
 
 
-    /*class SimpleItemRecyclerViewAdapter(
-        private val parentActivity: PokemonListActivity,
-        private val values: List<DummyContent.DummyItem>,
-        private val twoPane: Boolean
-    ) :
-        RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
-
-        private val onClickListener: View.OnClickListener
-
-        init {
-            onClickListener = View.OnClickListener { v ->
-                val item = v.tag as DummyContent.DummyItem
-                if (twoPane) {
-                    val fragment = PokemonDetailFragment().apply {
-                        arguments = Bundle().apply {
-                            putString(PokemonDetailFragment.ARG_ITEM_ID, item.id)
-                        }
-                    }
-                    parentActivity.supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.pokemon_detail_container, fragment)
-                        .commit()
-                } else {
-                    val intent = Intent(v.context, PokemonDetailActivity::class.java).apply {
-                        putExtra(PokemonDetailFragment.ARG_ITEM_ID, item.id)
-                    }
-                    v.context.startActivity(intent)
-                }
-            }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.pokemon_list_content, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = values[position]
-            holder.idView.text = item.id
-            holder.contentView.text = item.content
-
-            with(holder.itemView) {
-                tag = item
-                setOnClickListener(onClickListener)
-            }
-        }
-
-        override fun getItemCount() = values.size
-
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val idView: TextView = view.id_text
-            val contentView: TextView = view.content
-        }
-    }*/
 }

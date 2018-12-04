@@ -9,6 +9,9 @@ import com.google.zxing.Result
 import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity
 import me.dm7.barcodescanner.zxing.ZXingScannerView
 
+/**
+ * Activity de Scanner de QR
+ */
 class PokemonQRScanner: AppCompatActivity() , ZXingScannerView.ResultHandler{
 
     lateinit var scannerView: ZXingScannerView
