@@ -7,7 +7,9 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import es.vass.pokedexcanner.Injector
 import es.vass.pokedexcanner.R
 import es.vass.pokedexcanner.domain.AppExecutors
 import es.vass.pokedexcanner.pokemonList.list.PokemonListActivity
@@ -82,7 +84,13 @@ class SplashActivity: AppCompatActivity() {
 
         animatorSet.start()
 
-
+//region trick
+        if (resources.getBoolean(R.bool.isTablet))
+        with(Injector.provideDataSource(this)){
+            for (i in 1..20)
+                this?.viewPokemon(i.toLong())
+        }
+//endregion
 
     }
 }

@@ -186,10 +186,10 @@ class PokemonDetailFragment : Fragment() {
         }
 
         override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-            iv_pokemon_sprite_detail.setImageBitmap(bitmap)
+            iv_pokemon_sprite_detail?.setImageBitmap(bitmap)
 
             bitmap?.let{
-                toolbar_layout.setBackgroundColor(Palette.from(bitmap).generate().vibrantSwatch?.rgb ?: context?.let { context ->
+                toolbar_layout?.setBackgroundColor(Palette.from(bitmap).generate().vibrantSwatch?.rgb ?: context?.let { context ->
                     ContextCompat.getColor(
                         context, R.color.colorPrimary)
                 }!!)
