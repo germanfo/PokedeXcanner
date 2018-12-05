@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PokedeXcanner</string>
+    <string name="title_pokemon_detail">Pokemon Detail</string>
+    <string name="ok">Ok</string>
+</resources>

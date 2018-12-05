@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+        android:theme="@style/AppTheme.NoActionBar">
+
+    <View
+            android:id="@+id/background_view"
+            android:layout_centerInParent="true"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginLeft="5dp"
+            android:background="#c886d7dd"/>
+    <ImageView
+            android:layout_centerInParent="true"
+            android:id="@+id/iv_pokedex_ball"
+            android:layout_width="match_parent"
+            android:layout_height="195dp"
+            android:scaleType="fitCenter"
+            android:tint="#60c2f8"
+            android:src="@drawable/pokedex_ball"/>
+
+    <ImageView
+            android:layout_marginTop="55dp"
+            android:id="@+id/iv_pokedex_top"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/pokedex_top"
+            android:layout_alignParentTop="true"
+            android:scaleType="fitStart"
+            />
+
+
+    <ImageView
+            android:layout_marginBottom="55dp"
+            android:scaleType="fitEnd"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/iv_pokedex_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/pokedex_bottom"
+
+            />
+
+</RelativeLayout>
