@@ -33,10 +33,10 @@ class PokemonListAdapter (private val parentActivity: PokemonListActivity, priva
                 parentActivity.setSelectedPokemonId(item.id)
             } else {
                 //En SMP se lanza la Activity de detalle con el id como argumento
-                val intent = Intent(view.context, PokemonDetailActivity::class.java).apply {
+                val intent = Intent(parentActivity, PokemonDetailActivity::class.java).apply {
                     putExtra(PokemonDetailFragment.ARG_ITEM_ID, item.id)
                 }
-                view.context.startActivity(intent)
+                parentActivity.startActivity(intent)
             }
         }
     }
