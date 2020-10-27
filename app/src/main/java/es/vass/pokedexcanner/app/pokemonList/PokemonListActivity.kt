@@ -91,10 +91,6 @@ class PokemonListActivity : AppCompatActivity() {
         }
     }
 
-    fun setupViewModel() {
-        pokemonListViewModel = ViewModelProviders.of(this, Injector.providePokemonListViewModelFactory(this))
-            .get(PokemonListViewModel::class.java)
-    }
 
 
     private fun setupRecyclerView(recyclerView: RecyclerView) {
@@ -102,14 +98,28 @@ class PokemonListActivity : AppCompatActivity() {
         recyclerView.adapter = rvAdapter
     }
 
+//region ViewModel
+    fun setupViewModel() {
+        pokemonListViewModel = ViewModelProviders.of(this,
+            Injector.providePokemonListViewModelFactory(this))
+            .get(PokemonListViewModel::class.java)
+    }
+
     fun observeViewModel() {
-        //Se observa la lista de pokemons del VM y se notifica al adapter del recyclerview cuando ésta cambie
-        pokemonListViewModel.pokemonList.observe(this, Observer { pokemonList ->
-            pokemonList?.let {
-                rvAdapter.pokemonList = pokemonList
-                rvAdapter.notifyDataSetChanged()
-            }
-        })
+        //Se observa la lista de pokemons del VM y se notifica al adapter
+        // del recyclerview cuando ésta cambie
+        pokemonListViewModel.pokemonList.observe(this,
+
+            Observer { pokemonList ->
+                pokemonList?.let {
+                    rvAdapter.pokemonList = pokemonList
+                    rvAdapter.notifyDataSetChanged()
+                }
+            })
+    }
+
+    fun setSelectedPokemonId(id: Long?) {
+        pokemonListViewModel.setSelectedPokemonId(id)
     }
 
 
@@ -152,9 +162,7 @@ class PokemonListActivity : AppCompatActivity() {
     }
 
 
-    fun setSelectedPokemonId(id: Long?) {
-        pokemonListViewModel.setSelectedPokemonId(id)
-    }
+
 
 
 
